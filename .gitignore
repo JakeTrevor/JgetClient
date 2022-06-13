@@ -1,0 +1,9 @@
+dist
+build
+.vscode
+.venv
+__pycache__
+*.spec
+
+# directory used in testing
+packages

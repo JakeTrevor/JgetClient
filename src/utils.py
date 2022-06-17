@@ -1,16 +1,16 @@
 from typing import List
 from os.path import abspath, exists
 from os import mkdir, listdir
-from requests import get as HttpGet, Response
 
 
-def ensureDir(dir):
+def ensureDir(dir: str) -> None:
+    """Checks if a directory eixsts; if not, creates it."""
     if not exists(dir):
         mkdir(dir)
 
 
 def install(outdir: str, package: str, files: List[dict]) -> None:
-
+    """installed a downloaded package"""
     ensureDir(outdir)
     outdir = outdir + package + "/"
     ensureDir(outdir)
@@ -30,26 +30,13 @@ def install(outdir: str, package: str, files: List[dict]) -> None:
     pass
 
 
-def check_dependencies(outdir, dependencies: List[str]) -> List[str]:
+def check_dependencies(outdir: str, dependencies: List[str]) -> List[str]:
+    """compares currently installed packages with a list of required dependencies; returns a list of those which are missing."""
     installedPackages = set(listdir(outdir))
     return [each for each in dependencies if (each not in installedPackages) and each]
 
 
-def get_pkg(endpoint, outdir, package):
-    print("getting package " + package)
-    response: Response = HttpGet(
-        endpoint + f"api/get/{package}/")
-
-    if response.status_code != 200:
-        print("error!")
-        return
-    data = response.json()
-
-    files: str = data["files"]
-    dependencies: List[str] = data["dependencies"].split(",")
-    install(outdir, package, files)
-
-    required_dependencies = check_dependencies(outdir, dependencies)
-    for dependency in required_dependencies:
-        get_pkg(endpoint, outdir, dependency)
-    pass
+def list_dependencies(outdir: str) -> str:
+    """lists isntalled packages in this directory."""
+    if exists(outdir):
+        return ", ".join(listdir(outdir))

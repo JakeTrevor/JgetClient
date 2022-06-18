@@ -1,11 +1,12 @@
-import imp
-import json
 import os
+from json import dumps as render, loads as parse
 from click import argument, group, option, pass_context
+from requests import Response
+from operator import itemgetter as pluck
 
-from utils import list_dependencies
+from utils import get_files, list_dependencies
 from config import get_config_data, save_config_data
-from network import get_pkg, check_credentials
+from network import get_pkg, check_credentials, put_pkg
 
 
 @group()
@@ -26,9 +27,8 @@ def config(ctx, **kwargs):
     """configure jget vars like endpoint and output directory"""
     show = kwargs.pop("show")
     if show:
-        print("username:", ctx.obj["username"])
-        print("endpoint:", ctx.obj["endpoint"])
-        print("outdir:", ctx.obj["outdir"])
+        for each in ["username", "endpoint", "outdir"]:
+            print(f"{each}: {ctx.obj[each]}")
     else:
         save_config_data("cfg", **kwargs)
 
@@ -42,19 +42,19 @@ def config(ctx, **kwargs):
 def init(ctx, name, infer):
     """generates the packageFile required for jget packages"""
 
-    user = ctx.obj['username']
+    user, outdir = pluck("username", "outdir")(ctx.obj)
 
     dependencies = ""
     if infer:
         print("gathering dependencies...")
-        dependencies = list_dependencies(ctx.obj['outdir'])
+        dependencies = list_dependencies(outdir)
 
     data = {
         "name": name,
         "authors": [user],
         "dependencies": dependencies
     }
-    json_data = json.dumps(data)
+    json_data = render(data)
     with open("package.jget", "w+") as f:
         f.write(json_data)
     pass
@@ -79,12 +79,12 @@ def list(ctx, infer):
         return
 
     with open("package.jget", "r") as f:
-        data = json.loads(f.read())
+        data = parse(f.read())
 
     data["dependencies"] = dependencies
 
     with open("package.jget", "w+") as f:
-        f.write(json.dumps(data))
+        f.write(render(data))
 
 
 @jget.command()
@@ -108,20 +108,28 @@ def login(ctx, username: str, password: str):
 @pass_context
 def get(ctx, packages):
     """retreive package(s) from the jget repo"""
-    token = ctx.obj['token']
-    endpoint = ctx.obj['endpoint']
-    outdir = ctx.obj['outdir']
+    endpoint, outdir, token = pluck("endpoint", "outdir", "token")(ctx.obj)
+
     for package in packages:
         get_pkg(endpoint, token, outdir, package)
     pass
 
 
-# todo
 @jget.command()
 @pass_context
-def put():
+def put(ctx):
     """Uploads a project to the jget repo."""
-    pass
+    if not os.path.exists("package.jget"):
+        print("This directory is not a package. Please run 'jget init' first")
+        return
+
+    endpoint, token = pluck("endpoint", "token")(ctx.obj)
+
+    with open("package.jget", "r") as f:
+        data = parse(f.read())
+    data["files"] = get_files(data)
+
+    put_pkg(endpoint, token, data)
 
 
 if __name__ == "__main__":

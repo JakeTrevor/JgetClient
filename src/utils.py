@@ -1,6 +1,6 @@
 from typing import List
-from os.path import abspath, exists
-from os import mkdir, listdir
+from os.path import exists, join, normpath
+from os import mkdir, listdir, walk
 
 
 def ensureDir(dir: str) -> None:
@@ -12,22 +12,46 @@ def ensureDir(dir: str) -> None:
 def install(outdir: str, package: str, files: List[dict]) -> None:
     """installed a downloaded package"""
     ensureDir(outdir)
-    outdir = outdir + package + "/"
+    outdir = join(outdir, package)
     ensureDir(outdir)
 
     files: dict = {each["fileName"]: each["content"] for each in files}
 
     for each in files:
-        fname = abspath(outdir + each)
-        subdirs = each.split("/")[:-1]
+        fname = normpath(join(outdir, each))
+        subdirs = fname.split("\\")[2:-1]
 
-        for each in subdirs:
-            outdir = outdir + each
-            ensureDir(outdir)
+        dir_name = outdir
+        for subdir in subdirs:
+            dir_name += f"/{subdir}"
+            ensureDir(dir_name)
 
         with open(fname, "w") as f:
             f.write(files[each])
     pass
+
+
+def get_file_names() -> List[str]:
+    return [join(root, name)
+            for root, _, files in walk(".")
+            for name in files]
+
+
+def get_file_contents(fname: str) -> str:
+    with open(fname, "r") as f:
+        return f.read()
+
+
+# todo allow package.jget file
+def get_files(data):
+    files = []
+    for each in get_file_names():
+        print(each)
+        if each == ".\package.jget" or "packages" in each:
+            continue
+        content = get_file_contents(each)
+        files.append({"fileName": each, "content": content})
+    return files
 
 
 def check_dependencies(outdir: str, dependencies: List[str]) -> List[str]:

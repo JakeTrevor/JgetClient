@@ -1,8 +1,10 @@
+from os.path import join
 import os
 from json import dumps as render, loads as parse
 from click import argument, group, option, pass_context
-from requests import Response
 from operator import itemgetter as pluck
+
+import click
 
 from utils import get_files, list_dependencies
 from config import get_config_data, save_config_data
@@ -34,17 +36,19 @@ def config(ctx, **kwargs):
 
 
 @jget.command()
-@option('--name', prompt=True, default=os.path.basename(os.path.abspath(".")), help="Package name")
+@argument("package", type=click.Path(exists=True))
+@option('--name', default="False", help="Package name")
 @option('-id', '--infer-dependencies', 'infer',
         is_flag=True, show_default=True, default=False,
         help="Fill dependencies based on installed packages")
 @pass_context
-def init(ctx, name, infer):
+def init(ctx, package, name, infer):
     """generates the packageFile required for jget packages"""
-
+    if not name:
+        name = input(f"Name[{package}]: ") or package
     user, outdir = pluck("username", "outdir")(ctx.obj)
 
-    dependencies = ""
+    dependencies = []
     if infer:
         print("gathering dependencies...")
         dependencies = list_dependencies(outdir)
@@ -55,15 +59,17 @@ def init(ctx, name, infer):
         "dependencies": dependencies
     }
     json_data = render(data)
-    with open("package.jget", "w+") as f:
+
+    jget_file = join(package, "package.jget")
+
+    with open(jget_file, "w+") as f:
         f.write(json_data)
     pass
 
 
 @jget.command()
-@option('-id', '--infer-dependencies', 'infer',
-        is_flag=True, show_default=True, default=False,
-        help="Insert the list of dependencies into the local package.jget file as this project's dependencies")
+@option('-id', '--infer-directory', 'infer', type=click.Path(exists=True),
+        help="Insert the list of dependencies into the package.jget file in the provided project dir.")
 @pass_context
 def list(ctx, infer):
     """Lists all currently installed packages"""
@@ -72,18 +78,21 @@ def list(ctx, infer):
 
     if not infer:
         return
+    # ? at this point, we know that the user wants to infer dependencies.
 
-    if not os.path.exists("package.jget"):
+    jget_file = join(infer, "package.jget")
+
+    if not os.path.exists(jget_file):
         print("Dependencies cannot be added to a project that does not eixst \n"
-              "Please run 'jget init -id' to create project and infer dependencies in a single step")
+              "Please run 'jget init -id' to create a project and infer dependencies in a single step")
         return
 
-    with open("package.jget", "r") as f:
+    with open(jget_file, "r") as f:
         data = parse(f.read())
 
     data["dependencies"] = dependencies
 
-    with open("package.jget", "w+") as f:
+    with open(jget_file, "w+") as f:
         f.write(render(data))
 
 
@@ -105,29 +114,39 @@ def login(ctx, username: str, password: str):
 
 @jget.command(no_args_is_help=True)
 @argument('packages', nargs=-1)
+@option('-e', '--editable',
+        is_flag=True, show_default=True, default=False,
+        help="Install the package in editable form")
 @pass_context
-def get(ctx, packages):
+def get(ctx, packages, editable):
     """retreive package(s) from the jget repo"""
     endpoint, outdir, token = pluck("endpoint", "outdir", "token")(ctx.obj)
 
+    if editable:
+        if len(packages) > 1:
+            print("Please only instally 1 editable package at a time.")
+            raise SystemExit(1)
+
     for package in packages:
-        get_pkg(endpoint, token, outdir, package)
+        get_pkg(endpoint, token, outdir, package, editable)
     pass
 
 
 @jget.command()
+@option("-d", "--dir", default=".", type=click.Path(exists=True), help="Project directory; defaults to '.'")
 @pass_context
-def put(ctx):
+def put(ctx, dir):
     """Uploads a project to the jget repo."""
-    if not os.path.exists("package.jget"):
+    package_file = join(dir, "package.jget")
+    if not os.path.exists(package_file):
         print("This directory is not a package. Please run 'jget init' first")
         return
 
     endpoint, token = pluck("endpoint", "token")(ctx.obj)
 
-    with open("package.jget", "r") as f:
+    with open(package_file, "r") as f:
         data = parse(f.read())
-    data["files"] = get_files(data)
+    data["files"] = get_files()
 
     put_pkg(endpoint, token, data)
 

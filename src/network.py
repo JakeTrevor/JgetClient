@@ -1,5 +1,6 @@
 from typing import List
 
+from json import dumps
 from requests import get as HttpGet, post as HttpPost, Response
 from requests.exceptions import ConnectionError
 from requests.auth import HTTPBasicAuth
@@ -23,7 +24,7 @@ def check_credentials(endpoint, username: str, password: str) -> str | bool:
     return False
 
 
-def get_pkg(endpoint: str, token: str, outdir: str, package: str):
+def get_pkg(endpoint: str, token: str, outdir: str, package: str, editable: bool = False):
     """downloads and installs a package"""
     print("getting package " + package)
 
@@ -51,9 +52,15 @@ def get_pkg(endpoint: str, token: str, outdir: str, package: str):
         return
 
     data = response.json()
-    files: str = data["files"]
-    dependencies: List[str] = data["dependencies"].split(",")
-    install(outdir, package, files)
+    files: str = data.pop("files")
+    dependencies: List[str] = data["dependencies"]
+
+    location = "./" if editable else outdir
+    install(location, package, files)
+
+    if editable:
+        with open(f"{package}/package.jget", "w")as f:
+            f.write(dumps(data))
 
     required_dependencies = check_dependencies(outdir, dependencies)
     for dependency in required_dependencies:

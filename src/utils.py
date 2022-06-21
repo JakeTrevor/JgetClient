@@ -12,14 +12,15 @@ def ensureDir(dir: str) -> None:
 def install(outdir: str, package: str, files: List[dict]) -> None:
     """installed a downloaded package"""
     ensureDir(outdir)
-    outdir = join(outdir, package)
+    outdir = normpath(join(outdir, package))
     ensureDir(outdir)
+    ignore_dirs = len(outdir.split("\\"))
 
     files: dict = {each["fileName"]: each["content"] for each in files}
 
     for each in files:
         fname = normpath(join(outdir, each))
-        subdirs = fname.split("\\")[2:-1]
+        subdirs = fname.split("\\")[ignore_dirs:-1]
 
         dir_name = outdir
         for subdir in subdirs:
@@ -42,11 +43,9 @@ def get_file_contents(fname: str) -> str:
         return f.read()
 
 
-# todo allow package.jget file
-def get_files(data):
+def get_files():
     files = []
     for each in get_file_names():
-        print(each)
         if each == ".\package.jget" or "packages" in each:
             continue
         content = get_file_contents(each)
@@ -56,11 +55,13 @@ def get_files(data):
 
 def check_dependencies(outdir: str, dependencies: List[str]) -> List[str]:
     """compares currently installed packages with a list of required dependencies; returns a list of those which are missing."""
-    installedPackages = set(listdir(outdir))
-    return [each for each in dependencies if (each not in installedPackages) and each]
+    if exists(outdir):
+        installedPackages = set(listdir(outdir))
+        return [each for each in dependencies if (each not in installedPackages) and each]
+    return dependencies
 
 
-def list_dependencies(outdir: str) -> str:
+def list_dependencies(outdir: str) -> List[str]:
     """lists isntalled packages in this directory."""
     if exists(outdir):
-        return ", ".join(listdir(outdir))
+        return listdir(outdir)

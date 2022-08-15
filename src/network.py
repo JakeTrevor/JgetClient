@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List
 
 from json import dumps
 from requests import get as HttpGet, post as HttpPost, Response
@@ -68,8 +68,11 @@ def get_pkg(endpoint: str, token: str, outdir: str, package: str, editable: bool
     pass
 
 
-def put_pkg(endpoint: str, token: str, package_data: str) -> None:
-    args = {"url": endpoint + f"api/put/", "json": package_data}
+# todo load package here
+def put_pkg(endpoint: str, token: str, package_data: Dict) -> None:
+    package = "package"
+    args = {"url": endpoint + f"api/put/{package}/", "json": package_data}
+    print(args)
     if token:
         args["headers"] = {'Authorization': f'Token {token}'}
     try:

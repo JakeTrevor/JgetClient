@@ -146,7 +146,7 @@ def put(ctx, dir):
 
     with open(package_file, "r") as f:
         data = parse(f.read())
-    data["files"] = get_files()
+    data["files"] = render(get_files())
 
     put_pkg(endpoint, token, data)
 

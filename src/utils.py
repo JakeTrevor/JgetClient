@@ -1,6 +1,8 @@
-from typing import List
+from json import loads
+from typing import Dict, List
 from os.path import exists, join, normpath
 from os import mkdir, listdir, walk
+from wsgiref.simple_server import demo_app
 
 
 def ensureDir(dir: str) -> None:
@@ -9,27 +11,22 @@ def ensureDir(dir: str) -> None:
         mkdir(dir)
 
 
-def install(outdir: str, package: str, files: List[dict]) -> None:
+def write(location, files: Dict[str, any]):
+    for f_name in files:
+        if type(files[f_name]) == str:
+            with open(location + f"/{f_name}", "w") as f:
+                f.write(files[f_name])
+        else:
+            dir_name = location + f"/{f_name}"
+            ensureDir(dir_name)
+            write(dir_name, files[f_name])
+
+
+def install(outdir: str, package: str, files: str) -> None:
     """installed a downloaded package"""
     ensureDir(outdir)
-    outdir = normpath(join(outdir, package))
-    ensureDir(outdir)
-    ignore_dirs = len(outdir.split("\\"))
-
-    files: dict = {each["fileName"]: each["content"] for each in files}
-
-    for each in files:
-        fname = normpath(join(outdir, each))
-        subdirs = fname.split("\\")[ignore_dirs:-1]
-
-        dir_name = outdir
-        for subdir in subdirs:
-            dir_name += f"/{subdir}"
-            ensureDir(dir_name)
-
-        with open(fname, "w") as f:
-            f.write(files[each])
-    pass
+    files = loads(files)
+    write(outdir, files)
 
 
 def get_file_names() -> List[str]:
@@ -43,14 +40,25 @@ def get_file_contents(fname: str) -> str:
         return f.read()
 
 
+def add_file(data: Dict, f: str, content: str):
+    dest = data
+    segments = f.split("\\")
+    for each in segments[1:-1]:
+        if not each in dest:
+            dest[each] = {}
+        dest = dest[each]
+    dest[segments[-1]] = content
+
+
 def get_files():
-    files = []
+    data = {}
     for each in get_file_names():
         if each == ".\package.jget" or "packages" in each:
             continue
         content = get_file_contents(each)
-        files.append({"fileName": each, "content": content})
-    return files
+        add_file(data, each, content)
+    print(data)
+    return data
 
 
 def check_dependencies(outdir: str, dependencies: List[str]) -> List[str]:

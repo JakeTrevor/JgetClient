@@ -2,7 +2,6 @@ from json import loads
 from typing import Dict, List
 from os.path import exists, join, normpath
 from os import mkdir, listdir, walk
-from wsgiref.simple_server import demo_app
 
 
 def ensureDir(dir: str) -> None:

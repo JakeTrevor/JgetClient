@@ -7,7 +7,7 @@ from requests.auth import HTTPBasicAuth
 
 import click
 
-from utils import install, check_dependencies
+from utils import ensureDir, install, check_dependencies
 
 
 def check_credentials(endpoint, username: str, password: str) -> str | bool:
@@ -56,12 +56,17 @@ def get_pkg(endpoint: str, token: str, outdir: str, package: str, editable: bool
     data = response.json()
     files: str = data.pop("files")
     dependencies: List[str] = data["dependencies"]
+    if editable:
+        location = "./"
+    else:
+        location = outdir
+        ensureDir(location)
+        location = f"{location}/{package}"
 
-    location = "./" if editable else outdir
     install(location, package, files)
 
     if editable:
-        with open(f"{package}/package.jget", "w")as f:
+        with open("package.jget", "w")as f:
             f.write(dumps(data))
 
     required_dependencies = check_dependencies(outdir, dependencies)

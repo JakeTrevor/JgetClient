@@ -4,7 +4,7 @@
 #define MyAppName "Jget"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Jake Trevor Noodleworks"
-#define MyAppURL "jget.trevor.fish"
+#define MyAppURL "jget.trevor.business"
 #define MyAppExeName "jget.exe"
 
 [Setup]
@@ -21,7 +21,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 ChangesAssociations=yes
 DefaultGroupName={#MyAppName}
-OutputDir=C:\Users\theaw\Projects\Python\JgetClient\dist
+OutputDir=".\dist"
 OutputBaseFilename=Jget Installer
 Compression=lzma
 SolidCompression=yes
@@ -31,7 +31,7 @@ WizardStyle=modern
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "C:\Users\theaw\Projects\Python\JgetClient\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

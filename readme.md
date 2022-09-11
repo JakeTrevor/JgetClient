@@ -4,7 +4,9 @@ This is a CLI written in python for accessing the jget package server.
 
 built using [click](https://pypi.org/project/click/) and [requests](https://pypi.org/project/requests/)
 
-An executable is built with [PyInstaller](https://pyinstaller.org/)
+An executable is built with [PyInstaller](https://pyinstaller.org/);
+
+An installer is built with [Inno Setup](https://jrsoftware.org/isinfo.php)
 
 CLI is self documenting, since it is built with click
 

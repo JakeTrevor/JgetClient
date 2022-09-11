@@ -25,7 +25,7 @@ def get_config_data() -> dict[str, str]:
         "username": auth.get("username", None),
         "token": auth.get("token", None),
         "outdir": cfg.get("outdir", "./packages/"),
-        "endpoint": cfg.get("endpoint", "http://jget.trevor.fish/"),
+        "endpoint": cfg.get("endpoint", "http://jget.trevor.business/"),
     }
     return data
 

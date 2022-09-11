@@ -1,0 +1,4 @@
+{
+  "cSpell.words": ["CONFIGFILE", "jget", "outdir"],
+  "python.formatting.provider": "autopep8"
+}

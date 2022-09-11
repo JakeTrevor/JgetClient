@@ -38,7 +38,7 @@ def get_pkg(endpoint: str, token: str, outdir: str, package: str, editable: bool
         raise SystemExit(1)
 
     if response.status_code == 404:
-        print(f"unkown package: {package}")
+        print(f"unknown package: {package}")
         return
     elif response.status_code == 403:
         print(f"You dont have permission to access the package '{package}'")

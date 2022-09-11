@@ -22,7 +22,7 @@ def jget(ctx):
 
 @jget.command(no_args_is_help=True)
 @option('-e', '--endpoint', help="Jget server URL. Uses master Jget server by default")
-@option('-o', '--outdir', help="The package install directory; a package will be insatlled at <outdir>/<packageName>/")
+@option('-o', '--outdir', help="The package install directory; a package will be installed at <outdir>/<packageName>/")
 @option('-s', '--show', is_flag=True, show_default=True, default=False, help="Show existing configs")
 @pass_context
 def config(ctx, **kwargs):
@@ -83,7 +83,7 @@ def list(ctx, infer):
     jget_file = join(infer, "package.jget")
 
     if not os.path.exists(jget_file):
-        print("Dependencies cannot be added to a project that does not eixst \n"
+        print("Dependencies cannot be added to a project that does not exist \n"
               "Please run 'jget init -id' to create a project and infer dependencies in a single step")
         return
 
@@ -119,12 +119,12 @@ def login(ctx, username: str, password: str):
         help="Install the package in editable form")
 @pass_context
 def get(ctx, packages, editable):
-    """retreive package(s) from the jget repo"""
+    """retrieve package(s) from the jget repo"""
     endpoint, outdir, token = pluck("endpoint", "outdir", "token")(ctx.obj)
 
     if editable:
         if len(packages) > 1:
-            print("Please only instally 1 editable package at a time.")
+            print("Please only install 1 editable package at a time.")
             raise SystemExit(1)
 
     for package in packages:

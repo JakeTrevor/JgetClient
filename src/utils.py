@@ -6,7 +6,7 @@ from wsgiref.simple_server import demo_app
 
 
 def ensureDir(dir: str) -> None:
-    """Checks if a directory eixsts; if not, creates it."""
+    """Checks if a directory exists; if not, creates it."""
     if not exists(dir):
         mkdir(dir)
 
@@ -70,6 +70,6 @@ def check_dependencies(outdir: str, dependencies: List[str]) -> List[str]:
 
 
 def list_dependencies(outdir: str) -> List[str]:
-    """lists isntalled packages in this directory."""
+    """lists installed packages in this directory."""
     if exists(outdir):
         return listdir(outdir)

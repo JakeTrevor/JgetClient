@@ -37,15 +37,18 @@ def config(ctx, **kwargs):
 
 @jget.command()
 @argument("package", type=click.Path(exists=True))
-@option('--name', default="False", help="Package name")
+@option('--name', default=False, help="Package name")
 @option('-id', '--infer-dependencies', 'infer',
         is_flag=True, show_default=True, default=False,
         help="Fill dependencies based on installed packages")
 @pass_context
 def init(ctx, package, name, infer):
     """generates the packageFile required for jget packages"""
+
+    defaultName = os.path.basename(os.path.abspath(package))
+
     if not name:
-        name = input(f"Name[{package}]: ") or package
+        name = input(f"Name[{defaultName}]: ") or defaultName
     user, outdir = pluck("username", "outdir")(ctx.obj)
 
     dependencies = []

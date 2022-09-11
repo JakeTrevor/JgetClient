@@ -30,7 +30,7 @@ def config(ctx, **kwargs):
     show = kwargs.pop("show")
     if show:
         for each in ["username", "endpoint", "outdir"]:
-            print(f"{each}: {ctx.obj[each]}")
+            click.echo(f"{each}: {ctx.obj[each]}")
     else:
         save_config_data("cfg", **kwargs)
 
@@ -53,7 +53,7 @@ def init(ctx, package, name, infer):
 
     dependencies = []
     if infer:
-        print("gathering dependencies...")
+        click.echo("gathering dependencies...")
         dependencies = list_dependencies(outdir)
 
     data = {
@@ -77,7 +77,7 @@ def init(ctx, package, name, infer):
 def list(ctx, infer):
     """Lists all currently installed packages"""
     dependencies = list_dependencies(ctx.obj['outdir'])
-    print(dependencies)
+    click.echo(dependencies)
 
     if not infer:
         return
@@ -86,8 +86,8 @@ def list(ctx, infer):
     jget_file = join(infer, "package.jget")
 
     if not os.path.exists(jget_file):
-        print("Dependencies cannot be added to a project that does not exist \n"
-              "Please run 'jget init -id' to create a project and infer dependencies in a single step")
+        click.echo("Dependencies cannot be added to a project that does not exist \n"
+                   "Please run 'jget init -id' to create a project and infer dependencies in a single step")
         return
 
     with open(jget_file, "r") as f:
@@ -109,9 +109,9 @@ def login(ctx, username: str, password: str):
         ctx.obj["endpoint"], username.strip(), password.strip())
     if token:
         save_config_data("auth", username=username, token=token)
-        print("Logged in successfully")
+        click.echo("Logged in successfully")
     else:
-        print("Invalid username or password")
+        click.echo("Invalid username or password")
     pass
 
 
@@ -127,7 +127,7 @@ def get(ctx, packages, editable):
 
     if editable:
         if len(packages) > 1:
-            print("Please only install 1 editable package at a time.")
+            click.echo("Please only install 1 editable package at a time.")
             raise SystemExit(1)
 
     for package in packages:
@@ -142,7 +142,8 @@ def put(ctx, dir):
     """Uploads a project to the jget repo."""
     package_file = join(dir, "package.jget")
     if not os.path.exists(package_file):
-        print("This directory is not a package. Please run 'jget init' first")
+        click.echo(
+            "This directory is not a package. Please run 'jget init' first")
         return
 
     endpoint, token = pluck("endpoint", "token")(ctx.obj)

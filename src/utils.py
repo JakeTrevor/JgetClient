@@ -57,7 +57,6 @@ def get_files():
             continue
         content = get_file_contents(each)
         add_file(data, each, content)
-    print(data)
     return data
 
 

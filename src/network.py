@@ -5,6 +5,7 @@ from requests import get as HttpGet, post as HttpPost, Response
 from requests.exceptions import ConnectionError
 from requests.auth import HTTPBasicAuth
 
+import click
 
 from utils import install, check_dependencies
 
@@ -16,7 +17,7 @@ def check_credentials(endpoint, username: str, password: str) -> str | bool:
         response: Response = HttpPost(
             endpoint,  auth=HTTPBasicAuth(username, password))
     except ConnectionError as e:
-        print("had trouble connecting to the server.")
+        click.echo("had trouble connecting to the server.")
         raise SystemExit(1)
 
     if response.status_code == 200:
@@ -26,7 +27,7 @@ def check_credentials(endpoint, username: str, password: str) -> str | bool:
 
 def get_pkg(endpoint: str, token: str, outdir: str, package: str, editable: bool = False):
     """downloads and installs a package"""
-    print("getting package " + package)
+    click.echo("getting package " + package)
 
     args = {"url": endpoint + f"api/get/{package}/"}
     if token:
@@ -34,21 +35,22 @@ def get_pkg(endpoint: str, token: str, outdir: str, package: str, editable: bool
     try:
         response: Response = HttpGet(**args)
     except ConnectionError as e:
-        print("had trouble connecting to the server.")
+        click.echo("had trouble connecting to the server.")
         raise SystemExit(1)
 
     if response.status_code == 404:
-        print(f"unknown package: {package}")
+        click.echo(f"unknown package: {package}")
         return
     elif response.status_code == 403:
-        print(f"You dont have permission to access the package '{package}'")
+        click.echo(
+            f"You dont have permission to access the package '{package}'")
 
     elif response.status_code == 401:
-        print("please log in")
+        click.echo("please log in")
         return
     elif response.status_code != 200:
-        print(response)
-        print(response.text)
+        click.echo(response)
+        click.echo(response.text)
         return
 
     data = response.json()
@@ -78,13 +80,13 @@ def put_pkg(endpoint: str, token: str, package_data: Dict) -> None:
     try:
         response: Response = HttpPost(**args)
     except ConnectionError as e:
-        print("had trouble connecting to the server.")
+        click.echo("had trouble connecting to the server.")
         raise SystemExit(1)
 
     if response.status_code == 200:
-        print("package uploaded successfully")
+        click.echo("package uploaded successfully")
         return
     else:
-        print("error:")
-        print(response)
-        print(response.text)
+        click.echo("error:")
+        click.echo(response)
+        click.echo(response.text)

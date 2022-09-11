@@ -72,7 +72,7 @@ def get_pkg(endpoint: str, token: str, outdir: str, package: str, editable: bool
 
 # todo load package here
 def put_pkg(endpoint: str, token: str, package_data: Dict) -> None:
-    package = "package"
+    package = package_data["name"]
     args = {"url": endpoint + f"api/put/{package}/", "json": package_data}
     print(args)
     if token:
